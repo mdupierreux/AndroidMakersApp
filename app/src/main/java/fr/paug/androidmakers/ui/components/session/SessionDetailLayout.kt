@@ -172,9 +172,9 @@ fun SessionDetailLayout(
 private fun SessionDetails(sessionDetails: SessionDetailState, formattedDateAndRoom: String) {
 
   Column(
-      Modifier
-          .verticalScroll(state = rememberScrollState())
-          .padding(16.dp)
+    Modifier
+      .verticalScroll(state = rememberScrollState())
+      .padding(16.dp)
   ) {
 
     Text(
@@ -182,28 +182,24 @@ private fun SessionDetails(sessionDetails: SessionDetailState, formattedDateAndR
         style = MaterialTheme.typography.headlineLarge
     )
 
-    Row(
-        modifier = Modifier.padding(top = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start)
-    ) {
-      Icon(
-          modifier = Modifier.size(16.dp),
-          imageVector = Icons.Rounded.Info,
-          contentDescription = stringResource(R.string.info)
-      )
-
-      Text(
-          text = formattedDateAndRoom,
-          style = MaterialTheme.typography.labelMedium,
-      )
-    }
+    Text(
+      modifier = Modifier.padding(vertical = 8.dp),
+      text = getFormattedDate(
+        startTimestamp = sessionDetails.startTimestamp,
+        endTimestamp = sessionDetails.endTimestamp),
+      style = MaterialTheme.typography.labelLarge,
+    )
 
     Text(
-        modifier = Modifier.padding(top = 16.dp),
-        text = sessionDetails.session.description?.discardHtmlTags() ?: "",
-        textAlign = TextAlign.Start,
-        style = MaterialTheme.typography.bodyLarge,
+      text = sessionDetails.room.name,
+      style = MaterialTheme.typography.labelLarge,
+    )
+
+    Text(
+      modifier = Modifier.padding(top = 16.dp),
+      text = sessionDetails.session.description?.discardHtmlTags() ?: "",
+      textAlign = TextAlign.Start,
+      style = MaterialTheme.typography.bodyLarge,
     )
 
     ChipList(sessionDetails)
@@ -212,8 +208,8 @@ private fun SessionDetails(sessionDetails: SessionDetailState, formattedDateAndR
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(16.dp)
+          .fillMaxWidth()
+          .height(16.dp)
     )
 
     if (System.currentTimeMillis() > sessionDetails.startTimestamp) {
@@ -318,8 +314,8 @@ private fun Speaker(
   ) {
     AsyncImage(
         modifier = Modifier
-            .size(64.dp)
-            .clip(CircleShape),
+          .size(64.dp)
+          .clip(CircleShape),
         model = ImageRequest.Builder(LocalContext.current)
             .data(speaker.photoUrl)
             .build(),
@@ -374,12 +370,12 @@ private fun Speaker(
 private fun getFormattedDateAndRoom(room: Room, startTimestamp: Long, endTimestamp: Long): String {
   val context = LocalContext.current
   val sessionDate = DateUtils.formatDateRange(
-      context,
-      Formatter(context.resources.configuration.locale),
-      startTimestamp,
-      endTimestamp,
-      DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR,
-      "Europe/Paris"
+    context,
+    Formatter(context.resources.configuration.locale),
+    startTimestamp,
+    endTimestamp,
+    DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR,
+    "Europe/Paris"
   ).toString()
   return if (room.name.isNotEmpty()) {
     stringResource(R.string.sessionDateWithRoomPlaceholder, sessionDate, room.name)
@@ -388,13 +384,26 @@ private fun getFormattedDateAndRoom(room: Room, startTimestamp: Long, endTimesta
   }
 }
 
+@Composable
+private fun getFormattedDate(startTimestamp: Long, endTimestamp: Long): String {
+  val context = LocalContext.current
+  return DateUtils.formatDateRange(
+    context,
+    Formatter(context.resources.configuration.locale),
+    startTimestamp,
+    endTimestamp,
+    DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR,
+    "Europe/Paris"
+  ).toString()
+}
+
 private fun shareSession(
     context: Context,
     session: Session,
     sessionDateAndRoom: String,
     speakersList: List<Speaker>
 ) {
-  val speakers = TextUtils.join(", ", speakersList)
+  val speakers = TextUtils.join(", ", speakersList.map { it.name })
 
   val shareSessionIntent = Intent(Intent.ACTION_SEND)
   shareSessionIntent.putExtra(Intent.EXTRA_SUBJECT, session.title)
